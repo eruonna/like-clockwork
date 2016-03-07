@@ -35,3 +35,11 @@ addEntity e gs = ( { gs | entities = Dict.insert gs.nextId e gs.entities
                         , nextId = gs.nextId + 1 }
                  , gs.nextId
                  )
+
+type alias EntityUpdate = GameState -> Entity -> Entity
+
+runEntityUpdate : Id -> EntityUpdate -> GameState -> GameState
+runEntityUpdate id eu gs = Prism.update (entity id) (eu gs) gs
+
+noUpdate : EntityUpdate
+noUpdate _ e = e

@@ -2,13 +2,16 @@ module Main where
 
 import Dict exposing (Dict)
 import Html exposing (Html)
+import Signal
 
 import Games.Roguelike.Tile as Tile
 import Games.Roguelike.Tile exposing (Rect)
 import Games.Roguelike.Console as Console
 
+import Command exposing (Command)
 import Entity exposing (Entity)
 import GameState as GS
+import Input
 import Map exposing (Map)
 import Prism exposing (Prism)
 
@@ -26,9 +29,14 @@ height = 40
   in GS.empty |> GS.setMap (Map.new width height floorTile)
               |> GS.addEntity playerEnt 
 
+update : GS.Id -> Command -> GS.GameState -> GS.GameState
+update player cmd gs = GS.runEntityUpdate player (Command.run cmd) gs
+
 view : GS.GameState -> Html
 view gs = Console.fromMap (Rect 0 0 width height) gs.map .tile
                  |> (\ c -> Dict.foldl (\ _ e c -> Entity.draw c e) c gs.entities)
                  |> Console.view
 
-main = view newGame
+theGame = Signal.foldp (update player) newGame Input.commands
+
+main = Signal.map view theGame
