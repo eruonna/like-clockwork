@@ -30,4 +30,4 @@ canMove : (Int, Int) -> Map -> Bool
 canMove l m = Maybe.withDefault False <| Maybe.map .passable <| Prism.get (tile l) m
 
 new : Int -> Int -> Tile -> Map
-new w h t = List.concatMap (\ x -> List.map (\ y -> ((x, y), MapTile t True)) [0..h]) [0..w] |> Dict.fromList
+new w h t = List.concatMap (\ x -> List.map (\ y -> ((x, y), MapTile t True)) [0..h-1]) [0..w-1] |> Dict.fromList
