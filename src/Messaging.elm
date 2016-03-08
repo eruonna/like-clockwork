@@ -31,3 +31,12 @@ mapM f ms = traverse <| List.map (\ x -> x `andThen` f) ms
 
 foldM : (x -> y -> Messaging a y) -> y -> List x -> Messaging a y
 foldM op z l = List.foldl (\ x my -> my `andThen` op x) (return z) l
+
+runMessages : (m -> s -> Messaging m s) -> List m -> s -> s
+runMessages handleMessage ms s =
+  if List.isEmpty ms
+  then s
+  else uncurry (runMessages handleMessage) <| foldM handleMessage s ms
+
+runMessage : (m -> s -> Messaging m s) -> m -> s -> s
+runMessage handle m = runMessages handle [m]

@@ -13,6 +13,8 @@ import Entity exposing (Entity)
 import GameState as GS
 import Input
 import Map exposing (Map)
+import Messages
+import Messaging
 import Prism exposing (Prism)
 
 tilesheet = Tile.tilesheet "../assets/consolas_unicode_16x16.png" 16 16
@@ -30,7 +32,9 @@ height = 40
               |> GS.addEntity playerEnt 
 
 update : GS.Id -> Command -> GS.GameState -> GS.GameState
-update player cmd gs = GS.runEntityUpdate player (Command.run cmd) gs
+update player cmd gs = 
+ uncurry (Messaging.runMessages Messages.handleMessage)
+  <| GS.runEntityUpdate player (Command.run cmd) gs
 
 view : GS.GameState -> Html
 view gs = Console.fromMap (Rect 0 0 width height) gs.map .tile

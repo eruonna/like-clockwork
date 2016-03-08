@@ -11,12 +11,14 @@ import Games.Roguelike.Console exposing (Console)
 type alias Entity =
   { pos : Maybe (Int, Int)
   , tile : Maybe Tile
+  , trigger : Maybe (Int, Int)
   }
 
 new : Entity
 new =
   { pos = Nothing
   , tile = Nothing
+  , trigger = Nothing
   }
 
 pos : Prism Entity (Int, Int)
@@ -24,6 +26,9 @@ pos = prism .pos (\ p e -> { e | pos = Just p }) (\ e -> { e | pos = Nothing })
 
 tile : Prism Entity Tile
 tile = prism .tile (\ t e -> { e | tile = Just t }) (\ e -> { e | tile = Nothing })
+
+trigger : Prism Entity (Int, Int)
+trigger = prism .trigger (\ t e -> { e | trigger = Just t}) (\ e -> { e | trigger = Nothing })
 
 draw : Console -> Entity -> Console
 draw c e = case (e.pos, e.tile) of

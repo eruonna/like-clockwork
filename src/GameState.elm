@@ -37,29 +37,16 @@ addEntity e gs = ( { gs | entities = Dict.insert gs.nextId e gs.entities
                  , gs.nextId
                  )
 
-type alias EntityUpdate = GameState -> Entity -> Messaging Message Entity
+findEntities : (Entity -> Bool) -> GameState -> List Id
+findEntities p gs = Dict.keys <| Dict.filter (always p) gs.entities
 
-pureUpdate : (GameState -> Entity -> Entity) -> EntityUpdate
+type alias EntityUpdate m = GameState -> Entity -> Messaging m Entity
+
+pureUpdate : (GameState -> Entity -> Entity) -> EntityUpdate m
 pureUpdate u gs e = Messaging.return (u gs e)
 
-runEntityUpdate : Id -> EntityUpdate -> GameState -> GameState
-runEntityUpdate id eu gs = uncurry runMessages <| Prism.updateM (entity id) (eu gs) gs
+runEntityUpdate : Id -> EntityUpdate m -> GameState -> Messaging m GameState
+runEntityUpdate id eu gs = Prism.updateM (entity id) (eu gs) gs
 
-noUpdate : EntityUpdate
+noUpdate : EntityUpdate m
 noUpdate _ e = Messaging.return e
-
-type Message =
-  NoMessage
-
-handleMessage : Message -> GameState -> Messaging Message GameState
-handleMessage m gs = case m of
-  NoMessage -> Messaging.return gs
-
-runMessages : List Message -> GameState -> GameState
-runMessages ms gs =
-  if List.isEmpty ms
-  then gs
-  else uncurry runMessages <| Messaging.foldM handleMessage gs ms
-
-runMessage : Message -> GameState -> GameState
-runMessage m = runMessages [m]
