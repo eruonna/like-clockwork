@@ -3,6 +3,7 @@ module Movement where
 import Entity exposing (Entity)
 import GameState as GS
 import Map
+import Messaging
 import Prism
 
 type Direction =
@@ -20,7 +21,7 @@ move dir (x, y) = case dir of
   SW -> move S <| move W (x,y)
 
 tryMove : Direction -> GS.EntityUpdate
-tryMove dir gs e = case Prism.get Entity.pos e of
+tryMove dir = GS.pureUpdate (\ gs e -> case Prism.get Entity.pos e of
   Just p -> let p' = move dir p
             in if Map.canMove p' gs.map then Prism.set Entity.pos p' e else e
-  Nothing -> e
+  Nothing -> e)

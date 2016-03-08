@@ -4,6 +4,7 @@ import Dict exposing (Dict)
 
 import Entity exposing (Entity)
 import Map exposing (Map)
+import Messaging exposing (Messaging)
 import Prism exposing (Prism, prism)
 
 import Games.Roguelike.Tile exposing (Tile)
@@ -36,10 +37,29 @@ addEntity e gs = ( { gs | entities = Dict.insert gs.nextId e gs.entities
                  , gs.nextId
                  )
 
-type alias EntityUpdate = GameState -> Entity -> Entity
+type alias EntityUpdate = GameState -> Entity -> Messaging Message Entity
+
+pureUpdate : (GameState -> Entity -> Entity) -> EntityUpdate
+pureUpdate u gs e = Messaging.return (u gs e)
 
 runEntityUpdate : Id -> EntityUpdate -> GameState -> GameState
-runEntityUpdate id eu gs = Prism.update (entity id) (eu gs) gs
+runEntityUpdate id eu gs = uncurry runMessages <| Prism.updateM (entity id) (eu gs) gs
 
 noUpdate : EntityUpdate
-noUpdate _ e = e
+noUpdate _ e = Messaging.return e
+
+type Message =
+  NoMessage
+
+handleMessage : Message -> GameState -> Messaging Message GameState
+handleMessage m gs = case m of
+  NoMessage -> Messaging.return gs
+
+runMessages : List Message -> GameState -> GameState
+runMessages ms gs =
+  if List.isEmpty ms
+  then gs
+  else uncurry runMessages <| Messaging.foldM handleMessage gs ms
+
+runMessage : Message -> GameState -> GameState
+runMessage m = runMessages [m]
